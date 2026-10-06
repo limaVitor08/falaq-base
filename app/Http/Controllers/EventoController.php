@@ -21,8 +21,19 @@ class EventoController extends Controller
         $evento = Evento::findOrFail($id);
 
         $perguntas = Pergunta::with('user')
+            ->with('evento')
             ->where('evento_id', $evento->id)
-            ->where('is_public', true)
+            ->where(function ($query) use ($evento) {
+                $query->where('is_public', true);
+
+                if (Auth::check()) {
+                    $query->orWhere('user_id', Auth::id());
+
+                    if (Auth::id() === $evento->user_id) {
+                        $query->orWhere('is_public', false);
+                    }
+                }
+            })
             ->latest()
             ->paginate(10);
 
@@ -44,6 +55,17 @@ class EventoController extends Controller
             ->with('sucesso', 'Sua pergunta foi enviada com sucesso!');
     }
 
+    public function destroyPergunta(Pergunta $pergunta)
+    {
+        $this->authorize('delete', $pergunta);
+
+        $eventoId = $pergunta->evento_id;
+        $pergunta->delete();
+
+        return redirect()->route('eventos.show', $eventoId)
+            ->with('sucesso', 'Pergunta excluída com sucesso!');
+    }
+
     public function create(){
         return view('eventos.create');
     }
@@ -56,7 +78,6 @@ class EventoController extends Controller
     public function destroy($id)
     {
         $evento = Evento::find($id);
-        // if(Auth::id() === $evento->user_id){
         if(Auth::user()->cannot('delete', $evento)){
             return redirect()->route('eventos.show', $evento)->with('permissao', 'Usuário não pode deletar esse evento');
         }
