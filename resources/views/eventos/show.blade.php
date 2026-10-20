@@ -18,7 +18,6 @@
             </form>
         @endauth
     </div>
-    <!-- Formularço de envio de Pergunta -->
     <div class="col-md-5 mb-4">
         <div class="card shadow-sm p-3">
             <h4 class="fw-bold mb-3">💬 Faça sua Pergunta</h4>
@@ -42,7 +41,6 @@
         </div>
     </div>
 
-    <!-- Lista de Perguntas (TICKET #002) -->
     <div class="col-md-7">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="fw-bold m-0">📋 Perguntas do Evento</h4>
@@ -57,6 +55,17 @@
                         <span>Status: <span class="badge bg-success">{{ $pergunta->status }}</span></span>
                         <span>{{ $pergunta->created_at->format('d/m/Y H:i') }}</span>
                     </div>
+                    <div class="flex items-center gap-3 mt-3">
+                        <span class="text-sm text-white">👍 {{ $pergunta->votos_count }} voto(s)</span>
+                        @auth
+                            <form action="{{ route('perguntas.votar', $pergunta) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="px-3 py-1 text-sm font-medium rounded {{ auth()->user()->perguntasVotadas->contains($pergunta) ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800' }}">
+                                    {{ auth()->user()->perguntasVotadas->contains($pergunta) ? 'Remover voto' : 'Votar' }}
+                                </button>
+                            </form>
+                        @endauth
+                    </div>
                 </div>
             </div>
         @empty
@@ -65,7 +74,6 @@
             </div>
         @endforelse
 
-        <!-- TICKET #002: Renderização dos Botões de Paginação -->
         @if(method_exists($perguntas, 'links'))
             <div class="d-flex justify-content-center mt-4">
                 
